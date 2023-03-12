@@ -1,0 +1,8 @@
+FLASK_APP=app 
+FLASK_DEBUG=1
+POSTGRES_USER=postgres
+POSTGRES_PW=postgres
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+POSTGRES_DB=stores
+JWT_SECRET_KEY=laq2pp45qlaplk90absj@304baid[pjajs=]

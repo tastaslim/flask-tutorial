@@ -1,0 +1,1 @@
+from middleware.auth import register_jwt_middleware
