@@ -1,12 +1,14 @@
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt, create_refresh_token, get_jwt_identity
+
 from config import BLOCKLIST, db
+from middleware.api_key import verify_x_api_key
 from models import UserModel
 from schema import UserSchema
 from passlib.hash import pbkdf2_sha256
-
+from datetime import timedelta
 UserBlueprint = Blueprint(
     "Users", "users", description="Operations on users")
 
@@ -15,6 +17,7 @@ UserBlueprint = Blueprint(
 class User(MethodView):
     jwt_required()
 
+    @verify_x_api_key
     @UserBlueprint.response(200, UserSchema)
     def get(self, user_id):
         try:
@@ -28,7 +31,9 @@ class User(MethodView):
             abort(
                 500, message=f"An error occurred while getting the itemId {user_id}")
 
-    @jwt_required()
+    # Needs token fetched from login not from refresh token
+    @jwt_required(fresh=True)
+    @verify_x_api_key
     @UserBlueprint.response(204, None)
     def delete(self, user_id):
         try:
@@ -45,6 +50,8 @@ class User(MethodView):
 
 @UserBlueprint.route("/register")
 class UserRegister(MethodView):
+
+    # @verify_x_api_key
     @UserBlueprint.arguments(UserSchema)
     @UserBlueprint.response(201, UserSchema)
     def post(self, user_data):
@@ -68,8 +75,10 @@ class UserRegister(MethodView):
 
 @UserBlueprint.route("/user")
 class UserList(MethodView):
+
     jwt_required()
 
+    @verify_x_api_key
     @UserBlueprint.response(200, UserSchema(many=True))
     def get(self):
         return UserModel.query.all()
@@ -78,21 +87,54 @@ class UserList(MethodView):
 @UserBlueprint.route("/login")
 class UserLogin(MethodView):
     @UserBlueprint.arguments(UserSchema)
+    # @verify_x_api_key
     def post(self, user_data):
         username = user_data['username']
         user = UserModel.query.filter(
             UserModel.username == username).first()
         if user and pbkdf2_sha256.verify(user_data['password'], user.password):
-            access_token = create_access_token(identity=user.id)
-            print(access_token)
-            return {"access_token": access_token}
+            access_token = create_access_token(identity=user.id, fresh=True)
+            refresh_token = create_refresh_token(
+                identity=user.id, expires_delta=timedelta(days=90))
+            return {"access_token": access_token, "refresh_token": refresh_token}
         abort(401, message="Invalid Credentials.")
 
 
 @UserBlueprint.route("/logout")
 class UserLogout(MethodView):
     @jwt_required()
+    # @verify_x_api_key
     def post(self):
         jti = get_jwt().get('jti')
         BLOCKLIST.append(jti)  # TODO : Use redis or DB to maintain user token
         return {"message": "Logged Out Successfully"}
+
+        """ 1. Token refreshing: 
+            For security purposes, each access token must have an expiration time. Normally this is set to between 5 and 15 minutes, after which the user must re-authenticate.
+            In Flask-JWT, the re-authentication would require the user to enter their username and password again. That can be very tedious for users!
+            Token refreshing serves exactly this purpose. When authenticating via credentials the first time, we not only return an access token that contains the user's account info—we also return a refresh token that only serves to refresh the access token.
+            When an access token has expired we provide the refresh token, and Flask-JWT-Extended verifies it and returns a new, valid access token. That way the user can keep using that access token for accessing the protected services.
+            This process repeats every time the original access token expires... So does this mean the user never has to enter their credentials again?
+            
+            2. Token Freshness:
+            Given the above description, one may ask what is the difference between using the token refreshing workflow and having an access token that never expires?
+            It is true that it does not make a difference if we simply allow token refreshing with no further restrictions. However, there is a solution to make our authentication workflow more robust.
+            Here's a common use case: once we've signed in, we are normally able to continue using an app without entering credentials. However, if we try to perform a "critical" operation—such deleting some data or completing a bank transaction—we are often asked for the credentials (or at least a password).
+            How does that work?
+            Enter, token freshness. As a rule of thumb, any access token acquired via credentials is marked as fresh, while access tokens acquired via the refresh mechanism are marked as non-fresh.
+            Going back to our previous authentication workflow, the first time a user logs in with his credentials, he would get a fresh access token and a refresh token. If he tries to log back in and finds out his current access token has expired, he uses his refresh token to get a new access token. This new access token would be non-fresh, since it's not acquired with credentials.
+            We still have some trust in the user when he presents the non-fresh access token. However, when he tries to perform a critical action, such as a transaction, the application would not accept this access token. Instead, he would need to enter his credentials again and get a new fresh access token to proceed with the critical action.
+            Returns:
+                _type_: _description_
+        """
+
+
+@UserBlueprint.route("/refresh")
+class RefreshToken(MethodView):
+    # Means it needs refresh token not access token
+    @jwt_required(refresh=True)
+    # @verify_x_api_key
+    def post(self):
+        current_user = get_jwt_identity()
+        new_token = create_access_token(identity=current_user, fresh=False)
+        return {"access_token": new_token}

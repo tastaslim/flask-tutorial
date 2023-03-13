@@ -4,7 +4,7 @@ from flask_smorest import Blueprint, abort
 from sqlalchemy.exc import SQLAlchemyError
 from flask_jwt_extended import jwt_required
 from config import db
-from middleware.api_key import verify_x_api_key
+from middleware import verify_x_api_key
 from models import ItemModel
 from schema import ItemSchema, ItemUpdateSchema
 
@@ -15,12 +15,14 @@ ItemBlueprint = Blueprint("Items", "items", description="Operations on items")
 class Item(MethodView):
 
     @jwt_required()
+    # @jwt_required()
     @ItemBlueprint.response(200, ItemSchema)
     def get(self, item_id):
         item = ItemModel.query.get_or_404(item_id)
         return item
 
-    @jwt_required()
+    @jwt_required(fresh=True)
+    # @jwt_required()
     @ItemBlueprint.response(204, None)
     def delete(self, item_id):
         item = ItemModel.query.get_or_404(item_id)
@@ -28,7 +30,8 @@ class Item(MethodView):
         db.session.commit()
         return {"message": "Item deleted."}
 
-    @jwt_required()
+    @jwt_required(fresh=True)
+    # @jwt_required()
     @ItemBlueprint.arguments(ItemUpdateSchema)
     @ItemBlueprint.response(200, ItemSchema)
     def put(self, item_data, item_id):
@@ -49,12 +52,12 @@ class Item(MethodView):
 @ItemBlueprint.route("/item")
 class ItemList(MethodView):
     @jwt_required()
-    @verify_x_api_key
+    # @jwt_required()
     @ItemBlueprint.response(200, ItemSchema(many=True))
     def get(self):
         return ItemModel.query.all()
 
-    @jwt_required()
+    @jwt_required(fresh=True)
     @ItemBlueprint.arguments(ItemSchema)
     @ItemBlueprint.response(201, ItemSchema)
     def post(self, item_data):

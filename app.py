@@ -4,7 +4,7 @@ from flask_smorest import Api
 from config import DB_URL, db
 from middleware import register_jwt_middleware
 from resources import StoreBlueprint, TagBlueprint, ItemBlueprint, UserBlueprint
-from flask_jwt_extended import JWTManager
+from flask_wtf.csrf import CSRFProtect
 
 
 def create_app(db_url=None):
@@ -21,11 +21,16 @@ def create_app(db_url=None):
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["PROPAGATE_EXCEPTIONS"] = True
     db.init_app(app)
+    # csrf = CSRFProtect()
+    # csrf.init_app(app)
     api = Api(app)
-
     # Store it in Some safe place
     app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
+    # app.config['SECRET_KEY'] = "POWER_FULL_SECRET_KEY"
+    # app.config['WTF_CSRF_SECRET_KEY'] = "CSRF_SECRET_KEY"
+
     register_jwt_middleware(app)
+
     with app.app_context():
         db.create_all()
     api.register_blueprint(ItemBlueprint)

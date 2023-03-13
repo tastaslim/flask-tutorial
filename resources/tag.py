@@ -20,7 +20,7 @@ class TagsInStore(MethodView):
 
         return store.tags.all()  # lazy="dynamic" means 'tags' is a query
 
-    jwt_required()
+    jwt_required(fresh=True)
 
     @TagBlueprint.arguments(TagSchema)
     @TagBlueprint.response(201, TagSchema)
@@ -45,7 +45,7 @@ class TagsInStore(MethodView):
 @TagBlueprint.route("/item/<string:item_id>/tag/<string:tag_id>")
 class LinkTagsToItem(MethodView):
 
-    jwt_required()
+    jwt_required(fresh=True)
 
     @TagBlueprint.response(201, TagSchema)
     def post(self, item_id, tag_id):
@@ -62,7 +62,7 @@ class LinkTagsToItem(MethodView):
 
         return tag
 
-    jwt_required()
+    jwt_required(fresh=True)
 
     @TagBlueprint.response(204, None)
     def delete(self, item_id, tag_id):
@@ -89,7 +89,7 @@ class Tag(MethodView):
         tag = TagModel.query.get_or_404(tag_id)
         return tag
 
-    jwt_required()
+    jwt_required(fresh=True)
 
     @TagBlueprint.response(
         202,

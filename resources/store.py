@@ -25,7 +25,7 @@ class Store(MethodView):
             abort(
                 500, message=f"An error occurred while getting the itemId {store_id}")
 
-    @jwt_required()
+    @jwt_required(fresh=True)
     @StoreBlueprint.response(204, None)
     def delete(self, store_id):
         try:
@@ -47,7 +47,7 @@ class StoreList(MethodView):
     def get(self):
         return StoreModel.query.all()
 
-    @jwt_required()
+    @jwt_required(fresh=True)
     @StoreBlueprint.arguments(StoreSchema)
     @StoreBlueprint.response(201, StoreSchema)
     def post(self, store_data):
