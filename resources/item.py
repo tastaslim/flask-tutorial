@@ -1,8 +1,10 @@
+from flask import request
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from sqlalchemy.exc import SQLAlchemyError
 from flask_jwt_extended import jwt_required
 from config import db
+from middleware.api_key import verify_x_api_key
 from models import ItemModel
 from schema import ItemSchema, ItemUpdateSchema
 
@@ -47,6 +49,7 @@ class Item(MethodView):
 @ItemBlueprint.route("/item")
 class ItemList(MethodView):
     @jwt_required()
+    @verify_x_api_key
     @ItemBlueprint.response(200, ItemSchema(many=True))
     def get(self):
         return ItemModel.query.all()

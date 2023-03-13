@@ -1,1 +1,2 @@
 from middleware.auth import register_jwt_middleware
+from middleware.api_key import verify_x_api_key
