@@ -10,6 +10,7 @@ class PlainItemSchema(Schema):
 class PlainStoreSchema(Schema):
     id = fields.Int(dump_only=True)
     name = fields.Str()
+    is_deleted = fields.Boolean(required=True, load_only=True)
 
 
 class PlainTagSchema(Schema):

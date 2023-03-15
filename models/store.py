@@ -10,3 +10,4 @@ class StoreModel(db.Model):
     tags = db.relationship("TagModel", back_populates="store", lazy="dynamic")
     items = db.relationship(
         "ItemModel", back_populates="store", lazy="dynamic")
+    is_deleted = db.Column(db.Boolean, nullable=False, default=False)

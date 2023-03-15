@@ -61,6 +61,7 @@ class UserRegister(MethodView):
             user = UserModel(username=username, password=password)
             db.session.add(user)
             db.session.commit()
+            return user
         except IntegrityError:
             abort(
                 400,
@@ -69,8 +70,6 @@ class UserRegister(MethodView):
         except SQLAlchemyError as e:
             print(e)
             abort(500, message="An error occurred creating the user.")
-
-        return user
 
 
 @UserBlueprint.route("/user")
@@ -93,7 +92,7 @@ class UserLogin(MethodView):
         user = UserModel.query.filter(
             UserModel.username == username).first()
         if user and pbkdf2_sha256.verify(user_data['password'], user.password):
-            access_token = create_access_token(identity=user.id, fresh=True)
+            access_token = create_access_token(identity=user.id, fresh=True, expires_delta=timedelta(days=1))
             refresh_token = create_refresh_token(
                 identity=user.id, expires_delta=timedelta(days=90))
             return {"access_token": access_token, "refresh_token": refresh_token}
