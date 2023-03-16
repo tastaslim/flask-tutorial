@@ -34,7 +34,7 @@ def create_app(db_url=None):
         }
     }
 
-    app.config["SQLALCHEMY_DATABASE_URI"] = db_url or os.getenv(
+    app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
         'POSTGRES_DB_URL')
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["PROPAGATE_EXCEPTIONS"] = True

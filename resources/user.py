@@ -76,9 +76,10 @@ class UserRegister(MethodView):
                     UserModel.email == user_data['email'])
             ).first():
                 abort(409, message='A user with that username or email already exists')
-            username = user_data['username']
-            password = pbkdf2_sha256.hash(user_data['password'])
-            user = UserModel(username=username, password=password)
+            username, password, email = user_data['username'], pbkdf2_sha256.hash(
+                user_data['password']), user_data['email']
+
+            user = UserModel(username=username, password=password, email=email)
             db.session.add(user)
             db.session.commit()
             send_simple_message(
