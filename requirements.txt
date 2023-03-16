@@ -14,3 +14,4 @@ flask-security
 flask-oauthlib
 python-dotenv
 gunicorn
+requests
