@@ -1,7 +1,7 @@
 import os
 from flask import Flask, jsonify
 from flask_smorest import Api
-from config import DB_URL, db
+from config import db
 from middleware import register_jwt_middleware
 from resources import StoreBlueprint, TagBlueprint, ItemBlueprint, UserBlueprint
 # from flask_wtf.csrf import CSRFProtect
@@ -34,7 +34,8 @@ def create_app(db_url=None):
         }
     }
 
-    app.config["SQLALCHEMY_DATABASE_URI"] = db_url or DB_URL
+    app.config["SQLALCHEMY_DATABASE_URI"] = db_url or os.getenv(
+        'POSTGRES_DB_URL')
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["PROPAGATE_EXCEPTIONS"] = True
 

@@ -17,4 +17,3 @@ args = {
 #     'PYTHON_ENV') == 'LOCAL' else f'postgresql://{os.getenv("POSTGRES_USER")}:{os.getenv("POSTGRES_PW")}@{os.getenv("POSTGRES_HOST")}:{os.getenv("POSTGRES_PORT")}/{os.getenv("POSTGRES_DB")}?sslmode=require&sslcert={os.getenv("CA_CERT")}'
 BLOCKLIST = list()
 X_API_KEY = '1234567890'
-DB_URL = 'postgresql://jptjrjen:4CO7SKVXiUNVeqxy7sTXBh_kmZediu1g@floppy.db.elephantsql.com/jptjrjen'
