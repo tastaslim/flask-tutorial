@@ -34,7 +34,7 @@ def create_app(db_url=None):
         }
     }
 
-    app.config["SQLALCHEMY_DATABASE_URI"] = 'postgres://jptjrjen:4CO7SKVXiUNVeqxy7sTXBh_kmZediu1g@floppy.db.elephantsql.com/jptjrjen'
+    app.config["SQLALCHEMY_DATABASE_URI"] = db_url or DB_URL
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["PROPAGATE_EXCEPTIONS"] = True
 
