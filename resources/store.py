@@ -9,7 +9,7 @@ from schema import StoreSchema
 
 
 StoreBlueprint = Blueprint(
-    "Stores", "stores", description="Operations on stores")
+    "Stores", __name__, description="Operations on stores")
 
 
 @StoreBlueprint.route("/store/<string:store_id>")

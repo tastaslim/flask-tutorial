@@ -86,13 +86,13 @@ class UserList(MethodView):
 @UserBlueprint.route("/login")
 class UserLogin(MethodView):
     @UserBlueprint.arguments(UserSchema)
-    # @verify_x_api_key
     def post(self, user_data):
         username = user_data['username']
         user = UserModel.query.filter(
             UserModel.username == username).first()
         if user and pbkdf2_sha256.verify(user_data['password'], user.password):
-            access_token = create_access_token(identity=user.id, fresh=True, expires_delta=timedelta(days=1))
+            access_token = create_access_token(
+                identity=user.id, fresh=True, expires_delta=timedelta(days=1))
             refresh_token = create_refresh_token(
                 identity=user.id, expires_delta=timedelta(days=90))
             return {"access_token": access_token, "refresh_token": refresh_token}
@@ -102,7 +102,6 @@ class UserLogin(MethodView):
 @UserBlueprint.route("/logout")
 class UserLogout(MethodView):
     @jwt_required()
-    # @verify_x_api_key
     def post(self):
         jti = get_jwt().get('jti')
         BLOCKLIST.append(jti)  # TODO : Use redis or DB to maintain user token
@@ -132,7 +131,6 @@ class UserLogout(MethodView):
 class RefreshToken(MethodView):
     # Means it needs refresh token not access token
     @jwt_required(refresh=True)
-    # @verify_x_api_key
     def post(self):
         current_user = get_jwt_identity()
         new_token = create_access_token(identity=current_user, fresh=False)

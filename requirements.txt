@@ -11,3 +11,6 @@ passlib
 flask_wtf
 flask-migrate
 flask-security
+flask-oauthlib
+flask-restful
+python-dotenv
