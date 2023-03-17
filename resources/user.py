@@ -8,7 +8,7 @@ from flask_jwt_extended import create_access_token, jwt_required, get_jwt, creat
 
 from config import BLOCKLIST, db
 from middleware.api_key import verify_x_api_key
-from models import UserModel
+from models import UserModel, UserRegistrationModel
 from schema import UserSchema, UserRegisterSchema
 from passlib.hash import pbkdf2_sha256
 from datetime import timedelta
@@ -71,17 +71,20 @@ class UserRegister(MethodView):
     @UserBlueprint.response(201, UserRegisterSchema)
     def post(self, user_data):
         try:
-            if UserModel.query.filter(
-                or_(UserModel.username == user_data['username'],
-                    UserModel.email == user_data['email'])
+            if UserRegistrationModel.query.filter(
+                or_(UserRegistrationModel.username == user_data['username'],
+                    UserRegistrationModel.email == user_data['email'])
             ).first():
                 abort(409, message='A user with that username or email already exists')
             username, password, email = user_data['username'], pbkdf2_sha256.hash(
                 user_data['password']), user_data['email']
 
-            user = UserModel(username=username, password=password, email=email)
+            user = UserRegistrationModel(
+                username=username, password=password, email=email)
             db.session.add(user)
             db.session.commit()
+            # But sending email might take  some time and we  don't want to interrupt user while we are sending emails. For this purpose we
+            # will use redis and queue
             send_simple_message(
                 to=user.email,
                 subject='Successfully signed up',
