@@ -1,7 +1,6 @@
-import os
-
 from config.db import db
-
+from config.redis import redis_cache
+from config.allowed_urls import pass_api_key_check, pass_jwt_check
 """
 args = {
     "host": "<<your host>>",
@@ -13,7 +12,5 @@ args = {
     "sslmode": "verify-full"
 }
 """
-# DB_URL = f'postgresql://{os.getenv("POSTGRES_USER")}:{os.getenv("POSTGRES_PW")}@{os.getenv("POSTGRES_HOST")}:{os.getenv("POSTGRES_PORT")}/{os.getenv("POSTGRES_DB")}' if os.getenv(
-#     'PYTHON_ENV') == 'LOCAL' else f'postgresql://{os.getenv("POSTGRES_USER")}:{os.getenv("POSTGRES_PW")}@{os.getenv("POSTGRES_HOST")}:{os.getenv("POSTGRES_PORT")}/{os.getenv("POSTGRES_DB")}?sslmode=require&sslcert={os.getenv("CA_CERT")}'
 BLOCKLIST = list()
 X_API_KEY = '1234567890'

@@ -1,18 +1,20 @@
+import os
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 
+from flask import jsonify
+import json
 from flask_jwt_extended import jwt_required
-from config import db
+from config import db, redis_cache
 from models import StoreModel
 from schema import StoreSchema
-
 
 StoreBlueprint = Blueprint(
     "Stores", __name__, description="Operations on stores")
 
 
-@StoreBlueprint.route("/store/<string:store_id>")
+@StoreBlueprint.route(f"/{os.getenv('API_VERSION')}/store/<string:store_id>")
 class Store(MethodView):
     @jwt_required()
     @StoreBlueprint.response(200, StoreSchema)
@@ -40,7 +42,7 @@ class Store(MethodView):
             abort(500, message=f"An error occurred {e}")
 
 
-@StoreBlueprint.route("/store")
+@StoreBlueprint.route(f"/{os.getenv('API_VERSION')}/store")
 class StoreList(MethodView):
     @jwt_required()
     @StoreBlueprint.response(200, StoreSchema(many=True))

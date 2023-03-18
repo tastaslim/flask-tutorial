@@ -1,17 +1,17 @@
+import os
 from flask import request
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from sqlalchemy.exc import SQLAlchemyError
 from flask_jwt_extended import jwt_required
 from config import db
-from middleware import verify_x_api_key
 from models import ItemModel
 from schema import ItemSchema, ItemUpdateSchema
-
+from dotenv import load_dotenv
 ItemBlueprint = Blueprint("Items", "items", description="Operations on items")
+load_dotenv()
 
-
-@ItemBlueprint.route("/item/<string:item_id>")
+@ItemBlueprint.route(f"/{os.getenv('API_VERSION')}/item/<string:item_id>")
 class Item(MethodView):
 
     @jwt_required()
@@ -46,7 +46,7 @@ class Item(MethodView):
         return item
 
 
-@ItemBlueprint.route("/item")
+@ItemBlueprint.route(f"/{os.getenv('API_VERSION')}/item")
 class ItemList(MethodView):
     @jwt_required()
     @ItemBlueprint.response(200, ItemSchema(many=True))

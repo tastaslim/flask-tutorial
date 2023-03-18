@@ -7,7 +7,7 @@ from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt, create_refresh_token, get_jwt_identity
 
 from config import BLOCKLIST, db
-from middleware.api_key import verify_x_api_key
+from middleware import verify_api_key
 from models import UserModel, UserRegistrationModel
 from schema import UserSchema, UserRegisterSchema
 from passlib.hash import pbkdf2_sha256
@@ -28,11 +28,10 @@ def send_simple_message(to, subject, body):
         })
 
 
-@UserBlueprint.route("/user/<string:user_id>")
+@UserBlueprint.route(f"/{os.getenv('API_VERSION')}/user/<string:user_id>")
 class User(MethodView):
     jwt_required()
 
-    @verify_x_api_key
     @UserBlueprint.response(200, UserSchema)
     def get(self, user_id):
         try:
@@ -48,7 +47,6 @@ class User(MethodView):
 
     # Needs token fetched from login not from refresh token
     @jwt_required(fresh=True)
-    @verify_x_api_key
     @UserBlueprint.response(204, None)
     def delete(self, user_id):
         try:
@@ -63,7 +61,7 @@ class User(MethodView):
             abort(500, message=f"An error occurred {e}")
 
 
-@UserBlueprint.route("/register")
+@UserBlueprint.route(f"/{os.getenv('API_VERSION')}/register")
 class UserRegister(MethodView):
 
     # @verify_x_api_key
@@ -101,20 +99,20 @@ class UserRegister(MethodView):
             abort(500, message="An error occurred creating the user.")
 
 
-@UserBlueprint.route("/user")
+@UserBlueprint.route(f"/{os.getenv('API_VERSION')}/user")
 class UserList(MethodView):
 
     jwt_required()
 
-    @verify_x_api_key
     @UserBlueprint.response(200, UserSchema(many=True))
     def get(self):
         return UserModel.query.all()
 
 
-@UserBlueprint.route("/login")
+@UserBlueprint.route(f"/{os.getenv('API_VERSION')}/login")
 class UserLogin(MethodView):
     @UserBlueprint.arguments(UserSchema)
+    @verify_api_key()
     def post(self, user_data):
         username = user_data['username']
         user = UserModel.query.filter(
@@ -128,7 +126,7 @@ class UserLogin(MethodView):
         abort(401, message="Invalid Credentials.")
 
 
-@UserBlueprint.route("/logout")
+@UserBlueprint.route(f"/{os.getenv('API_VERSION')}/logout")
 class UserLogout(MethodView):
     @jwt_required()
     def post(self):
@@ -156,7 +154,7 @@ class UserLogout(MethodView):
         """
 
 
-@UserBlueprint.route("/refresh")
+@UserBlueprint.route(f"/{os.getenv('API_VERSION')}/refresh")
 class RefreshToken(MethodView):
     # Means it needs refresh token not access token
     @jwt_required(refresh=True)

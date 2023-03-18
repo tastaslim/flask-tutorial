@@ -1,3 +1,4 @@
+import os
 from flask.views import MethodView
 from flask_jwt_extended import jwt_required
 from flask_smorest import Blueprint, abort
@@ -10,7 +11,7 @@ from schema import TagAndItemSchema, TagSchema
 TagBlueprint = Blueprint("Tags", "tags", description="Operations on tags")
 
 
-@TagBlueprint.route("/store/<string:store_id>/tag")
+@TagBlueprint.route(f"/{os.getenv('API_VERSION')}/store/<string:store_id>/tag")
 class TagsInStore(MethodView):
     jwt_required()
 
@@ -42,7 +43,7 @@ class TagsInStore(MethodView):
         return tag
 
 
-@TagBlueprint.route("/item/<string:item_id>/tag/<string:tag_id>")
+@TagBlueprint.route(f"/{os.getenv('API_VERSION')}/item/<string:item_id>/tag/<string:tag_id>")
 class LinkTagsToItem(MethodView):
 
     jwt_required(fresh=True)
@@ -80,7 +81,7 @@ class LinkTagsToItem(MethodView):
         return {"message": "Item removed from tag", "item": item, "tag": tag}
 
 
-@TagBlueprint.route("/tag/<string:tag_id>")
+@TagBlueprint.route(f"/{os.getenv('API_VERSION')}/tag/<string:tag_id>")
 class Tag(MethodView):
     jwt_required()
 
