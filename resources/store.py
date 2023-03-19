@@ -2,11 +2,9 @@ import os
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
-
-from flask import jsonify
-import json
 from flask_jwt_extended import jwt_required
-from config import db, redis_cache
+from config import db
+from middleware import verify_api_key
 from models import StoreModel
 from schema import StoreSchema
 
@@ -17,6 +15,7 @@ StoreBlueprint = Blueprint(
 @StoreBlueprint.route(f"/{os.getenv('API_VERSION')}/store/<string:store_id>")
 class Store(MethodView):
     @jwt_required()
+    @verify_api_key()
     @StoreBlueprint.response(200, StoreSchema)
     def get(self, store_id):
         try:
@@ -28,6 +27,7 @@ class Store(MethodView):
                 500, message=f"An error occurred while getting the itemId {store_id}")
 
     @jwt_required(fresh=True)
+    @verify_api_key()
     @StoreBlueprint.response(204, None)
     def delete(self, store_id):
         try:
@@ -45,11 +45,13 @@ class Store(MethodView):
 @StoreBlueprint.route(f"/{os.getenv('API_VERSION')}/store")
 class StoreList(MethodView):
     @jwt_required()
+    @verify_api_key()
     @StoreBlueprint.response(200, StoreSchema(many=True))
     def get(self):
         return StoreModel.query.all()
 
     @jwt_required(fresh=True)
+    @verify_api_key()
     @StoreBlueprint.arguments(StoreSchema)
     @StoreBlueprint.response(201, StoreSchema)
     def post(self, store_data):

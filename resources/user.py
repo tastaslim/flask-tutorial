@@ -31,7 +31,7 @@ def send_simple_message(to, subject, body):
 @UserBlueprint.route(f"/{os.getenv('API_VERSION')}/user/<string:user_id>")
 class User(MethodView):
     jwt_required()
-
+    @verify_api_key()
     @UserBlueprint.response(200, UserSchema)
     def get(self, user_id):
         try:
@@ -47,6 +47,7 @@ class User(MethodView):
 
     # Needs token fetched from login not from refresh token
     @jwt_required(fresh=True)
+    @verify_api_key()
     @UserBlueprint.response(204, None)
     def delete(self, user_id):
         try:
@@ -64,9 +65,9 @@ class User(MethodView):
 @UserBlueprint.route(f"/{os.getenv('API_VERSION')}/register")
 class UserRegister(MethodView):
 
-    # @verify_x_api_key
     @UserBlueprint.arguments(UserRegisterSchema)
     @UserBlueprint.response(201, UserRegisterSchema)
+    @verify_api_key()
     def post(self, user_data):
         try:
             if UserRegistrationModel.query.filter(
@@ -103,7 +104,7 @@ class UserRegister(MethodView):
 class UserList(MethodView):
 
     jwt_required()
-
+    @verify_api_key()
     @UserBlueprint.response(200, UserSchema(many=True))
     def get(self):
         return UserModel.query.all()
@@ -129,9 +130,10 @@ class UserLogin(MethodView):
 @UserBlueprint.route(f"/{os.getenv('API_VERSION')}/logout")
 class UserLogout(MethodView):
     @jwt_required()
+    @verify_api_key()
     def post(self):
         jti = get_jwt().get('jti')
-        BLOCKLIST.append(jti)  # TODO : Use redis or DB to maintain user token
+        BLOCKLIST.append(jti)
         return {"message": "Logged Out Successfully"}
 
         """ 1. Token refreshing: 
@@ -158,6 +160,7 @@ class UserLogout(MethodView):
 class RefreshToken(MethodView):
     # Means it needs refresh token not access token
     @jwt_required(refresh=True)
+    @verify_api_key()
     def post(self):
         current_user = get_jwt_identity()
         new_token = create_access_token(identity=current_user, fresh=False)

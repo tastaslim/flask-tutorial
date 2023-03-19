@@ -5,8 +5,9 @@ from flask_smorest import Blueprint, abort
 from sqlalchemy.exc import SQLAlchemyError
 
 from config import db
+from middleware import verify_api_key
 from models import TagModel, StoreModel, ItemModel
-from schema import TagAndItemSchema, TagSchema
+from schema import TagSchema
 
 TagBlueprint = Blueprint("Tags", "tags", description="Operations on tags")
 
@@ -14,7 +15,7 @@ TagBlueprint = Blueprint("Tags", "tags", description="Operations on tags")
 @TagBlueprint.route(f"/{os.getenv('API_VERSION')}/store/<string:store_id>/tag")
 class TagsInStore(MethodView):
     jwt_required()
-
+    @verify_api_key()
     @TagBlueprint.response(200, TagSchema(many=True))
     def get(self, store_id):
         store = StoreModel.query.get_or_404(store_id)
@@ -22,7 +23,7 @@ class TagsInStore(MethodView):
         return store.tags.all()  # lazy="dynamic" means 'tags' is a query
 
     jwt_required(fresh=True)
-
+    @verify_api_key()
     @TagBlueprint.arguments(TagSchema)
     @TagBlueprint.response(201, TagSchema)
     def post(self, tag_data, store_id):
@@ -47,7 +48,7 @@ class TagsInStore(MethodView):
 class LinkTagsToItem(MethodView):
 
     jwt_required(fresh=True)
-
+    @verify_api_key()
     @TagBlueprint.response(201, TagSchema)
     def post(self, item_id, tag_id):
         item = ItemModel.query.get_or_404(item_id)
@@ -64,7 +65,7 @@ class LinkTagsToItem(MethodView):
         return tag
 
     jwt_required(fresh=True)
-
+    @verify_api_key()
     @TagBlueprint.response(204, None)
     def delete(self, item_id, tag_id):
         item = ItemModel.query.get_or_404(item_id)
@@ -84,14 +85,14 @@ class LinkTagsToItem(MethodView):
 @TagBlueprint.route(f"/{os.getenv('API_VERSION')}/tag/<string:tag_id>")
 class Tag(MethodView):
     jwt_required()
-
+    @verify_api_key()
     @TagBlueprint.response(200, TagSchema)
     def get(self, tag_id):
         tag = TagModel.query.get_or_404(tag_id)
         return tag
 
     jwt_required(fresh=True)
-
+    @verify_api_key()
     @TagBlueprint.response(
         202,
         description="Deletes a tag if no item is tagged with it.",

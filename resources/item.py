@@ -5,6 +5,7 @@ from flask_smorest import Blueprint, abort
 from sqlalchemy.exc import SQLAlchemyError
 from flask_jwt_extended import jwt_required
 from config import db
+from middleware import verify_api_key
 from models import ItemModel
 from schema import ItemSchema, ItemUpdateSchema
 from dotenv import load_dotenv
@@ -15,12 +16,14 @@ load_dotenv()
 class Item(MethodView):
 
     @jwt_required()
+    @verify_api_key()
     @ItemBlueprint.response(200, ItemSchema)
     def get(self, item_id):
         item = ItemModel.query.get_or_404(item_id)
         return item
 
     @jwt_required(fresh=True)
+    @verify_api_key()
     @ItemBlueprint.response(204, None)
     def delete(self, item_id):
         item = ItemModel.query.get_or_404(item_id)
@@ -29,6 +32,7 @@ class Item(MethodView):
         return {"message": "Item deleted."}
 
     @jwt_required(fresh=True)
+    @verify_api_key()
     @ItemBlueprint.arguments(ItemUpdateSchema)
     @ItemBlueprint.response(200, ItemSchema)
     def put(self, item_data, item_id):
@@ -49,11 +53,13 @@ class Item(MethodView):
 @ItemBlueprint.route(f"/{os.getenv('API_VERSION')}/item")
 class ItemList(MethodView):
     @jwt_required()
+    @verify_api_key()
     @ItemBlueprint.response(200, ItemSchema(many=True))
     def get(self):
         return ItemModel.query.all()
 
     @jwt_required(fresh=True)
+    @verify_api_key()
     @ItemBlueprint.arguments(ItemSchema)
     @ItemBlueprint.response(201, ItemSchema)
     def post(self, item_data):
