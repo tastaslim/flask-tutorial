@@ -6,7 +6,7 @@ from sqlalchemy import or_
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt, create_refresh_token, get_jwt_identity
 
-from config import BLOCKLIST, db
+from config import db, redis_cache
 from middleware import verify_api_key
 from models import UserModel, UserRegistrationModel
 from schema import UserSchema, UserRegisterSchema
@@ -133,7 +133,8 @@ class UserLogout(MethodView):
     @verify_api_key()
     def post(self):
         jti = get_jwt().get('jti')
-        BLOCKLIST.append(jti)
+        redis_cache.lpush('BLOCKLIST' , f'{jti}')
+        redis_cache.expire('BLOCKLIST', 60*60*24) # 24 hours
         return {"message": "Logged Out Successfully"}
 
         """ 1. Token refreshing: 
