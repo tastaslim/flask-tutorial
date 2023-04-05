@@ -60,5 +60,22 @@ def create_app():
         api.register_blueprint(StoreBlueprint)
         api.register_blueprint(TagBlueprint)
         api.register_blueprint(UserBlueprint)
+    
+    @app.errorhandler(404)
+    def not_found(e):
+        return {
+            "status": "Not Found",
+            "code": 404, 
+            "message" : "The resource doesn't exist"
+        }
+    
+    @app.errorhandler(500)
+    def internal_error(e):
+        print(e)
+        return {
+            "status": "Internal Server Error",
+            "code": 500, 
+            "message" : e.message
+        }
 
     return app
