@@ -14,14 +14,14 @@ def create_app():
     with app.app_context():
         app.config["API_TITLE"] = "Stores REST API"
         app.config["API_VERSION"] = "v1"
-        app.config["OPENAPI_VERSION"] = "3.0.9"
+        app.config["OPENAPI_VERSION"] = "3.0.0"
         app.config["OPENAPI_URL_PREFIX"] = "/"
         app.config["OPENAPI_SWAGGER_UI_PATH"] = f"{os.getenv('API_VERSION')}/swagger"
         app.config[
             "OPENAPI_SWAGGER_UI_URL"
         ] = "https://cdn.jsdelivr.net/npm/swagger-ui-dist/"
         app.config['API_SPEC_OPTIONS'] = {
-            'security': [{"bearerAuth": []}],
+            'security': [{"bearerAuth": []}, { "apiKey" : []}],
             'components': {
                 "securitySchemes":
                 {
@@ -31,6 +31,12 @@ def create_app():
                         "name": "Authorization",
                         "bearerFormat": "JWT",
                         "description": "Enter: **'Bearer &lt;JWT&gt;'**, where JWT is the access token",
+                    },
+                    "apiKey":{
+                        "type": "apiKey",
+                        "in": "header",
+                        "name": "x-api-key",
+                        "description": "Enter your API KEY",
                     }
                 }
             }

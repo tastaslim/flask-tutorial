@@ -1,2 +1,3 @@
 import redis
-redis_cache = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True, encoding="utf-8")
+import os
+redis_cache = redis.Redis(host=os.getenv('REDIS_HOST'), port=os.getenv('REDIS_PORT'), decode_responses=True, encoding="utf-8", password = os.getenv('REDIS_PASSWORD')) # type: ignore
